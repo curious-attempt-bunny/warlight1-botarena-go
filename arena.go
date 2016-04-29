@@ -62,7 +62,7 @@ type Movement struct {
 }
 
 func main() {
-    var terrain_id *string = flag.String("map", "54f45b994b5ab244fb84c7b1", "Map file to use (default 54f45b994b5ab244fb84c7b1)")
+    var terrain_id *string = flag.String("map", "theoneandonlymap", "Map file to use (default theoneandonlymap)")
     flag.Parse()
 
     if len(flag.Args()) != 1 && len(flag.Args()) != 2 {
@@ -389,6 +389,8 @@ func parse(state *State, line string) *State {
                 state.starting_regions[i-2], _ = strconv.ParseInt(parts[i], 10, 0)
             }
         }
+    case "pick_starting_regions":
+        // ignoring this for now, hope it doesn't bite us (i.e. no inforcing correct play)
     default:
         log.Fatal(fmt.Sprintf("Don't recognise: %s\n", line))
     }
