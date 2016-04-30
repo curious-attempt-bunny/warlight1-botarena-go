@@ -26,7 +26,6 @@ func Proxy(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/competitions/warlight-ai-challenge/games/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Println("Serving game data for "+r.URL.String())
         if strings.Index(r.URL.String(), "/data") >= 0 {
             w.Header()["Content-Type"] = []string{"text/html"}
             data, err := os.Open("game-data.txt")
