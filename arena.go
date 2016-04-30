@@ -96,9 +96,6 @@ func main() {
         bot.id = int64(1+i)
         bot.name = fmt.Sprintf("player%d", bot.id)
 
-        send(bot, "settings timebank 10000") // TODO: remove hardcoded value
-        send(bot, "settings time_per_move 500") // TODO: remove hardcoded value
-        send(bot, fmt.Sprintf("settings max_rounds %d", state.max_rounds))
         send(bot, fmt.Sprintf("settings your_bot %s", bot.name))
         send(bot, fmt.Sprintf("settings opponent_bot player%d", (3-bot.id)))
 
@@ -107,7 +104,7 @@ func main() {
 
     send_map(state)
 
-    pick_regions(state)
+    // pick_regions(state)
 
     data_log, err := os.Create("game-data.txt")
     if err != nil {
