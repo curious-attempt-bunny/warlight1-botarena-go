@@ -27,6 +27,7 @@ type State struct {
     starting_regions []int64
     starting_pick_amount int64
     max_rounds int64
+    punish_illegal_moves bool
     bots []*Bot
     round int64
     data_log *os.File
@@ -378,17 +379,8 @@ func parse(state *State, line string) *State {
             log.Fatal(fmt.Sprintf("Don't recognise: %s\n", line))
         }
     case "settings":
-        switch parts[1] {
-        case "max_rounds":
-            state.max_rounds, _ = strconv.ParseInt(parts[2], 10, 0)
-        case "starting_pick_amount":
-            state.starting_pick_amount, _ = strconv.ParseInt(parts[2], 10, 0)
-        case "starting_regions":
-            state.starting_regions = make([]int64, len(parts)-2)
-            for i := 2; i < len(parts); i++ {
-                state.starting_regions[i-2], _ = strconv.ParseInt(parts[i], 10, 0)
-            }
-        }
+        state.max_rounds = 50 // TODO: what is the max?
+        state.punish_illegal_moves = false
     case "pick_starting_regions":
         // ignoring this for now, hope it doesn't bite us (i.e. no inforcing correct play)
     default:
@@ -479,7 +471,11 @@ func recieve_placements(state *State, bot *Bot) []*Placement {
         }
 
         if armies > remaining_armies {
-            log.Fatal(fmt.Sprintf("Trying to place more armies than are available: %s", command))
+            if state.punish_illegal_moves {
+                log.Fatal(fmt.Sprintf("Trying to place more armies than are available: %s", command))
+            } else {
+                armies = remaining_armies
+            }
         }
 
         if region.owner != bot.name {
