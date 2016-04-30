@@ -29,7 +29,7 @@ You can run the java starter bot against itself by doing this:
 TODO. If / when this is working. It will work like this:
 
     sudo go run viewer.go
-    open http://localhost/competitions/warlight-ai-challenge/games/54f45b994b5ab244fb84c7b1
+    open http://localhost/competitions/warlight-ai-challenge/games/5724205d4ca80151322b5e57
 
 # Implementation notes
 
