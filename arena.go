@@ -119,9 +119,6 @@ func main() {
     for state.round = 1; state.round <= state.max_rounds+1; state.round++ {
         if game_over(state) {
             break
-        } else if state.round == state.max_rounds+1 {
-            fmt.Println("DRAW GAME")
-            break
         }
 
         log_line(state, fmt.Sprintf("round %d", state.round))
@@ -408,6 +405,9 @@ func game_over(state *State) bool {
 
             fmt.Printf("WIN BY %s IN %d ROUNDS\n", winner, state.round)
             log_line(state, fmt.Sprintf("%s won", winner))
+            return true
+        } else if state.round == state.max_rounds+1 {
+            log_line(state, "Nobody won")
             return true
         }
     }
