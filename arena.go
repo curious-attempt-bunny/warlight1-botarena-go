@@ -136,11 +136,11 @@ func main() {
 
             send(bot, "opponent_moves")
 
-            send(bot, "go place_armies 10000")
+            send(bot, "go place_armies 2000")
 
             placements[i] = recieve_placements(state, bot)
 
-            send(bot, "go attack/transfer 10000")
+            send(bot, "go attack/transfer 2000")
 
             movements[i] = recieve_movements(state, bot)
         }
