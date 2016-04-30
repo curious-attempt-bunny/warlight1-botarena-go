@@ -255,63 +255,57 @@ func pick_regions(state *State) {
     }
 
     for _, bot := range state.bots {
-        send(bot, fmt.Sprintf("settings starting_regions %s", strings.Join(region_strs[:], " ")))
-        send(bot, fmt.Sprintf("settings starting_pick_amount %d", state.starting_pick_amount))
+        send(bot, fmt.Sprintf("pick_starting_regions 10000 %s", strings.Join(region_strs[:], " ")))
     }
-    log_line(state, strings.Join(region_strs[:], " "))
+    // log_line(state, strings.Join(region_strs[:], " "))
 
-    log_map(state)
-    log_line(state, "round 0")
+    // log_map(state)
+    // log_line(state, "round 0")
 
-    remaining_picks := int(state.starting_pick_amount) * len(state.bots)
-    remaining_regions := regions
+    selections := make([][]int64, 2)
+    selections[0] = make([]int64, 6)
+    selections[1] = make([]int64, 6)
 
-    rotation := []int{0, 1, 1, 0}
+    for i, bot := range state.bots {
+        line := receive(bot)
+        parts := strings.Split(line, " ")
 
-    for i := 0; i<remaining_picks; i++ {
-        index := rotation[i%4]
-        remaining_regions = pick_a_region(state, state.bots[index], remaining_regions)
-    }
-
-    for _, bot := range state.bots {
-        send(bot, "setup_map opponent_starting_regions") // TODO
-    }
-}
-
-func pick_a_region(state *State, bot *Bot, regions []int64) []int64 {
-    region_strs := make([]string, len(regions))
-    for i, id := range regions {
-        region_strs[i] = fmt.Sprintf("%d", id)
-    }
-    send(bot, fmt.Sprintf("pick_starting_region 10000 %s", strings.Join(region_strs[:], " ")))
-
-    line := receive(bot)
-
-    region_id, err := strconv.ParseInt(line, 10, 0)
-    if err != nil {
-        log.Fatal(err)
-    }
-    index := -1
-    for i, id := range regions {
-        if id == region_id {
-            index = i
-            break
+        for j, part := range parts {
+            region_id, err := strconv.ParseInt(part, 10, 0)
+            if err != nil {
+                log.Fatal(err)
+            }
+            selections[i][j] = region_id
         }
     }
-    if index == -1 {
-        log.Fatal(fmt.Sprintf("Not a valid choice of starting region: %s\n", line))
+
+    bot_preference_index := make([]int64, 2)
+    bot_preference_index[0] = 0
+    bot_preference_index[1] = 0
+
+    bot_remaining := make([]int64, 2)
+    bot_remaining[0] = 3
+    bot_remaining[1] = 3
+
+    for p := 0; p<6; p++ {
+        bot_id := p % 2 // yes, we're always giving preference to the first bot
+        for {
+            if bot_remaining[bot_id] == 0 {
+                break
+            }
+            // log.Println(fmt.Sprintf("Remaining for %s are %d\n", state.bots[bot_id].name, bot_remaining[bot_id]))
+
+            region_id := selections[bot_id][bot_preference_index[bot_id]]
+            bot_preference_index[bot_id] += 1
+            // log.Println(fmt.Sprintf("Region: %d owned by %s\n", region_id, state.regions[region_id].owner))
+            if state.regions[region_id].owner == "neutral" {
+                state.regions[region_id].owner = state.bots[bot_id].name
+                bot_remaining[bot_id] -= 1
+                // log.Println(fmt.Sprintf("  now region: %d owned by %s\n", region_id, state.regions[region_id].owner))
+                break
+            }
+        }
     }
-
-    new_regions := make([]int64, len(regions)-1)
-    copy(new_regions[:], regions[0:index])
-    copy(new_regions[index:], regions[index+1:])
-
-    state.regions[region_id].owner = bot.name
-
-    log_line(state, fmt.Sprintf("%s place_armies %d %d", bot.name, region_id, state.regions[region_id].armies))
-    log_map(state)
-
-    return new_regions
 }
 
 func parse(state *State, line string) *State {
@@ -376,7 +370,10 @@ func parse(state *State, line string) *State {
         state.max_rounds = 50 // TODO: what is the max?
         state.punish_illegal_moves = false
     case "pick_starting_regions":
-        // ignoring this for now, hope it doesn't bite us (i.e. no inforcing correct play)
+        state.starting_regions = make([]int64, len(parts)-3)
+        for i := 3; i < len(parts); i++ {
+            state.starting_regions[i-3], _ = strconv.ParseInt(parts[i], 10, 0)
+        }
     default:
         log.Fatal(fmt.Sprintf("Don't recognise: %s\n", line))
     }
