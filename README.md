@@ -26,7 +26,7 @@ You can run the java starter bot against itself by doing this:
 
 # Game visualisation
 
-TODO. If / when this is working. It will work like this:
+It works like this (sudo is for listening on port 80)
 
     sudo go run viewer.go
     open http://localhost/competitions/warlight-ai-challenge/games/5724205d4ca80151322b5e57
